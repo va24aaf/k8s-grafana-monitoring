@@ -44,9 +44,6 @@ k8s-grafana-monitoring/
 │   ├── deployment.yaml
 │   ├── service.yaml
 │
-├── monitoring/
-│   └── grafana-dashboard.json
-│
 ├── images/
 │   ├── dashboard-overview.png
 │   ├── pod-status.png
@@ -62,14 +59,6 @@ k8s-grafana-monitoring/
 ---
 
 # Architecture
-
-```text
-Dummy Application Pods
-        ↓
-Prometheus Scrapes Metrics
-        ↓
-Grafana Visualizes Metrics
-```
 
 ---
 
@@ -89,7 +78,7 @@ kubectl get nodes
 
 Expected Output:
 
-```text
+```
 NAME       STATUS   ROLES           AGE   VERSION
 minikube   Ready    control-plane   XXm   v1.xx.x
 ```
@@ -100,19 +89,19 @@ minikube   Ready    control-plane   XXm   v1.xx.x
 
 Add the Prometheus Helm repository:
 
-```bash
+```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 ```
 
 Update Helm repositories:
 
-```bash
+```
 helm repo update
 ```
 
 Install Prometheus and Grafana stack:
 
-```bash
+```
 helm install monitoring prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
   --create-namespace
@@ -120,7 +109,7 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 
 Verify monitoring pods:
 
-```bash
+```
 kubectl get pods -n monitoring
 ```
 
@@ -130,26 +119,26 @@ kubectl get pods -n monitoring
 
 Port-forward Grafana service:
 
-```bash
+```
 kubectl port-forward svc/monitoring-grafana 3000:80 -n monitoring
 ```
 
 Access Grafana:
 
-```text
+```
 http://localhost:3000
 ```
 
 Retrieve Grafana admin password:
 
-```bash
+```
 kubectl get secret monitoring-grafana -n monitoring \
   -o jsonpath="{.data.admin-password}" | base64 --decode
 ```
 
 Default username:
 
-```text
+```
 admin
 ```
 
@@ -159,7 +148,7 @@ admin
 
 ## app.js
 
-```javascript
+```
 const express = require('express');
 const app = express();
 
@@ -176,7 +165,7 @@ app.listen(3000, () => {
 
 ## package.json
 
-```json
+```
 {
   "name": "monitoring-demo",
   "version": "1.0.0",
@@ -191,7 +180,7 @@ app.listen(3000, () => {
 
 ## Dockerfile
 
-```Dockerfile
+```
 FROM node:18-alpine
 
 WORKDIR /app
@@ -213,19 +202,19 @@ CMD ["node", "app.js"]
 
 Configure Docker to use Minikube Docker daemon:
 
-```bash
+```
 eval $(minikube docker-env)
 ```
 
 Build Docker image:
 
-```bash
+```
 docker build -t monitoring-demo .
 ```
 
 Verify image:
 
-```bash
+```
 docker images
 ```
 
@@ -235,7 +224,7 @@ docker images
 
 ## deployment.yaml
 
-```yaml
+```
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -260,13 +249,13 @@ spec:
 
 Deploy application:
 
-```bash
+```
 kubectl apply -f deployment.yaml
 ```
 
 Verify pods:
 
-```bash
+```
 kubectl get pods
 ```
 
@@ -276,7 +265,7 @@ kubectl get pods
 
 ## service.yaml
 
-```yaml
+```
 apiVersion: v1
 kind: Service
 metadata:
@@ -293,13 +282,13 @@ spec:
 
 Apply service:
 
-```bash
+```
 kubectl apply -f service.yaml
 ```
 
 Verify service:
 
-```bash
+```
 kubectl get svc
 ```
 
@@ -309,7 +298,7 @@ kubectl get svc
 
 Create a dashboard called:
 
-```text
+```
 Kubernetes Pod Health and Latency
 ```
 
@@ -329,7 +318,7 @@ Pie Chart
 
 ## Query
 
-```promql
+```
 sum by (phase) (
   kube_pod_status_phase{job="kube-state-metrics"} == 1
 )
@@ -353,7 +342,7 @@ Time Series
 
 ## Query
 
-```promql
+```
 sum(rate(kube_pod_container_status_restarts_total{namespace="default"}[5m])) by (pod)
 ```
 
@@ -375,7 +364,7 @@ Time Series
 
 ## Query
 
-```promql
+```
 sum by (pod) (
   rate(container_cpu_usage_seconds_total{namespace="default", pod!=""}[5m])
 )
@@ -399,7 +388,7 @@ Time Series
 
 ## Query
 
-```promql
+```
 sum by (pod) (
   container_memory_working_set_bytes{namespace="default", pod!=""}
 )
@@ -423,7 +412,7 @@ Time Series
 
 ## Query
 
-```promql
+```
 histogram_quantile(
   0.99,
   sum by (le) (
@@ -444,13 +433,13 @@ To generate visible monitoring data:
 
 Scale deployment up:
 
-```bash
+```
 kubectl scale deployment monitoring-demo --replicas=8
 ```
 
 Scale deployment down:
 
-```bash
+```
 kubectl scale deployment monitoring-demo --replicas=2
 ```
 
@@ -461,7 +450,6 @@ This generates:
 - latency metrics
 
 ---
-
 # Screenshots
 
 ## Dashboard Overview
@@ -497,6 +485,12 @@ This generates:
 ## Pod Start Latency
 
 ![Pod Start Latency](images/pod-latency.png)
+
+---
+
+## Helm Installation
+
+![Helm Installation](images/helm.png)
 
 ---
 
@@ -538,3 +532,6 @@ This project successfully implemented a Kubernetes monitoring stack using Promet
 - Grafana Documentation
 - Kubernetes Documentation
 - Helm Charts Documentation
+
+## Author
+Vivian Amati
