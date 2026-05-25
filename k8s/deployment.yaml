@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring-demo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: monitoring-demo
+  template:
+    metadata:
+      labels:
+        app: monitoring-demo
+    spec:
+      containers:
+      - name: monitoring-demo
+        image: monitoring-demo
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
